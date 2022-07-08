@@ -1,0 +1,1 @@
+start /MAX cmd /c "cls && title Stop and Delete Docker Container && docker stop di-container && docker container rm di-container && timeout /t 10 /nobreak"
