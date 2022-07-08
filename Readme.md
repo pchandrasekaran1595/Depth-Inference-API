@@ -22,5 +22,3 @@
 - `/infer`
 
 <br>
-
-**Deployed on heroku at https://pcs-cv-api.herokuapp.com (Uses Python-3.9.13)**
