@@ -1,1 +1,0 @@
-start /MAX cmd /c "cls && title Build Docker Image && docker build -t %DOCKER_USERNAME%/depth-inference-api:1.0 . && timeout /t 10 /nobreak"

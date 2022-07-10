@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  web:
+    environment:
+      DOCKER_USERNAME: "pchandrasekaran1595"
+    image: ${DOCKER_USERNAME}/depth-inference-api:1.0
+    ports:
+      - "9090:9090"
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped

@@ -1,1 +1,1 @@
-start /MAX cmd /c "cls && title Run Docker Container && docker run -d --name di-container -p 9090:9090 %DOCKER_USERNAME%/depth-inference-api:1.0 && timeout /t 10 /nobreak"
+start /MAX cmd /c "cls && title Docker Compose Run && docker compose up -d --build && timeout /t 10 /nobreak"
