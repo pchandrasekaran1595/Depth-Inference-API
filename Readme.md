@@ -11,7 +11,7 @@
 **OR**
 
 
-1. Pull the docker image using `docker pull prashanthacsq/depth-inference-api` (Uses Python-3.8)
+1. Pull the docker image using `docker pull pchandrasekaran1595/depth-inference-api`
 2. Run `docker-run.bat`. 
 3. The API will now be served at `http://127.0.0.1:9090`
 
