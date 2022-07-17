@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import JSONResponseJSONResponse(
+from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from static.utils import CFG, decode_image, encode_image_to_base64
@@ -65,7 +65,7 @@ async def post_infer(image: Image):
     cfg = CFG()
     cfg.setup()
     image = cfg.infer(image=image)
-    imageData = encode_image_to_base64(header="data:image/png;base64", image=image)
+    imageData = encode_image_to_base64(image=image)
 
     return JSONResponse({
         "statusText" : "Depth Inference Complete",
