@@ -1,8 +1,0 @@
-__pycache__
-venv
-.vscode
-.pytest_cache
-*.bat
-misc
-.git
-.github

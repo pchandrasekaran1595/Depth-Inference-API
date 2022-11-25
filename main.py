@@ -1,14 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from static.utils import CFG, decode_image, encode_image_to_base64
+from static.utils import Model, decode_image, encode_image_to_base64
 
 
-STATIC_PATH = "static"
-VERSION = "0.0.1"
+STATIC_PATH: str = "static"
+VERSION: str = "0.0.1"
+
+model: Model = Model()
+model.setup()
 
 
 class Image(BaseModel):
@@ -35,7 +38,7 @@ app.add_middleware(
 async def root():
     return JSONResponse({
         "statusText" : "Root Endpoint of Depth Inference API",
-        "statusCode" : 200,
+        "statusCode" : status.HTTP_200_OK,
         "version" : VERSION,
     })
 
@@ -44,7 +47,7 @@ async def root():
 async def get_version():
     return JSONResponse({
         "statusText" : "Version Fetch Successful",
-        "statusCode" : 200,
+        "statusCode" : status.HTTP_200_OK,
         "version" : VERSION,
     })
 
@@ -53,7 +56,7 @@ async def get_version():
 async def get_infer():
     return JSONResponse({
         "statusText" : "Inference Endpoint",
-        "statusCode" : 200,
+        "statusCode" : status.HTTP_200_OK,
         "version" : VERSION,
     })
 
@@ -62,13 +65,11 @@ async def get_infer():
 async def post_infer(image: Image):
     _, image = decode_image(image.imageData)
 
-    cfg = CFG()
-    cfg.setup()
-    image = cfg.infer(image=image)
+    image = model.infer(image=image)
     imageData = encode_image_to_base64(image=image)
 
     return JSONResponse({
         "statusText" : "Depth Inference Complete",
-        "statusCode" : 200,
+        "statusCode" : status.HTTP_200_OK,
         "imageData" : imageData,
     })

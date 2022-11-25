@@ -1,1 +1,0 @@
-start /MAX cmd /c "title Tests && cls && docker run -d --name test-container -p 9090:9090 %DOCKER_USERNAME%/depth-inference-api:1.0 && docker exec test-container pytest && docker stop test-container && docker container rm test-container && timeout /t 10 /nobreak"

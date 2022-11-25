@@ -8,9 +8,10 @@ import onnxruntime as ort
 
 from PIL import Image
 
-STATIC_PATH = "static"
+STATIC_PATH: str = "static"
 
-class CFG(object):
+
+class Model(object):
     def __init__(self) -> None:
         self.ort_session = None
         self.size: int = 256
@@ -29,8 +30,7 @@ class CFG(object):
 
         image = image / 255
         image = cv2.resize(src=image, dsize=(self.size, self.size), interpolation=cv2.INTER_AREA).transpose(2, 0, 1)
-        for i in range(image.shape[0]):
-            image[i, :, :] = (image[i, :, :] - self.mean[i]) / self.std[i]
+        for i in range(image.shape[0]): image[i, :, :] = (image[i, :, :] - self.mean[i]) / self.std[i]
         image = np.expand_dims(image, axis=0)
         input = {self.ort_session.get_inputs()[0].name : image.astype("float32")}
         result = self.ort_session.run(None, input)
@@ -39,7 +39,7 @@ class CFG(object):
         return cv2.resize(src=result, dsize=(w, h), interpolation=cv2.INTER_AREA)
 
 
-def decode_image(imageData) -> np.ndarray:
+def decode_image(imageData) -> tuple:
     header, imageData = imageData.split(",")[0], imageData.split(",")[1]
     image = np.array(Image.open(io.BytesIO(base64.b64decode(imageData))))
     image = cv2.cvtColor(src=image, code=cv2.COLOR_BGRA2RGB)
