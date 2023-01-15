@@ -11,7 +11,6 @@ STATIC_PATH: str = "static"
 VERSION: str = "0.0.1"
 
 model: Model = Model()
-model.setup()
 
 
 class Image(BaseModel):
