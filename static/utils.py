@@ -8,6 +8,8 @@ import onnxruntime as ort
 
 from PIL import Image
 
+ort.set_default_logger_severity(3)
+
 STATIC_PATH: str = "static"
 
 
@@ -18,9 +20,7 @@ class Model(object):
         self.mean: list = [0.5, 0.5, 0.5]
         self.std: list  = [0.5, 0.5, 0.5]
         self.path: str = os.path.join(STATIC_PATH, "model.onnx")
-        ort.set_default_logger_severity(3)
-    
-    def setup(self) -> None:
+
         model = onnx.load(self.path)
         onnx.checker.check_model(model)
         self.ort_session = ort.InferenceSession(self.path)
@@ -42,7 +42,7 @@ class Model(object):
 def decode_image(imageData) -> tuple:
     header, imageData = imageData.split(",")[0], imageData.split(",")[1]
     image = np.array(Image.open(io.BytesIO(base64.b64decode(imageData))))
-    image = cv2.cvtColor(src=image, code=cv2.COLOR_BGRA2RGB)
+    image = image[:, :, :4]
     return header, image
 
 
