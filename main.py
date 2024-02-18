@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import cv2
 
 from typing import Union
 
@@ -75,6 +74,15 @@ async def login(request: Request) -> JSONResponse:
 
 @app.route("/depth", methods=["GET", "POST"])
 async def resize(request: Request) -> Union[JSONResponse, file]:
+    '''
+    BASH
+
+    curl -X GET -L "http://localhost:9090/depth"
+    curl -X GET -L "http://localhost:9090/depth?rtype=json"
+    curl -X POST -L "http://localhost:9090/depth" -F file=@"/C:/Users/user/IMG.png" --output C:/Users/user/Downloads/Depth.png
+    curl -X POST -L "http://localhost:9090/depth?rtype=json" -F file=@"/C:/Users/user/IMG.png" --output C:/Users/user/Downloads/Depth.json
+
+    '''
     rtype: str = "file"
 
     if request.method == "GET":

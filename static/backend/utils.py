@@ -27,7 +27,7 @@ class Processor:
     
     @staticmethod  
     def write_to_temp(image: np.ndarray) -> None:
-        cv2.imwrite("TEMP/temp.png", image)
+        cv2.imwrite("TEMP/temp.png", cv2.cvtColor(src=image, code=cv2.COLOR_RGB2BGR))
 
 
 class Model(object):
