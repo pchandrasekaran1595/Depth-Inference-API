@@ -1,1 +1,1 @@
-start /MAX cmd /c "cls && title Prepare Environment && py -3.8 -m venv venv && cd venv/Scripts && activate && cd .. && cd .. && pip install -r requirements.txt && deactivate && timeout /t 5 /nobreak"
+start /MAX cmd /c "cls && title Prepare Environment && py -3.8 -m venv venv38 && cd venv38/Scripts && activate && cd ../.. && python -m pip install --upgrade pip && pip install -r requirements.txt && deactivate && timeout /t 5 /nobreak"
