@@ -22,35 +22,34 @@ if not os.path.exists("TEMP"):
     os.makedirs("TEMP")
 
 
-@app.route("/favicon.ico", methods=["GET"])
+@app.route("/favicon.ico", methods=["GET"], name="Favicon")
 async def favicon(request: Request):
-    return await file(location=f"{STATIC_PATH}/web/favicon.ico", status=200, mime_type="image/x-icon")
+    return await file(
+        location=f"{STATIC_PATH}/web/favicon.ico", status=200, mime_type="image/x-icon"
+    )
 
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET"], name="Homepage")
 async def root(request: Request) -> html:
     with open(f"{STATIC_PATH}/web/index.html", "r") as fp:
         html_content = fp.read()
     return html(body=html_content, status=200)
 
 
-@app.route("/help", methods=["GET"])
+@app.route("/help", methods=["GET"], name="Help")
 async def help(request: Request) -> html:
     with open(f"{STATIC_PATH}/web/help.html", "r") as fp:
         html_content = fp.read()
     return html(body=html_content, status=200)
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST"], name="Login")
 async def login(request: Request) -> JSONResponse:
     try:
         await request.receive_body()
     except:
         raise SanicException(
-            message={
-                "statusText" : "Error in request body"
-            }, 
-            status_code=400
+            message={"statusText": "Error in request body"}, status_code=400
         )
 
     body = json.loads(request.body.decode("ascii"))
@@ -68,21 +67,42 @@ async def login(request: Request) -> JSONResponse:
         body={
             "statusText": "Login Successful",
         },
-        status=201
+        status=201,
     )
 
 
-@app.route("/depth", methods=["GET", "POST"])
+@app.route("/clean", methods=["GET"])
+async def clean(request: Request) -> JSONResponse:
+    if len(os.listdir("TEMP")) == 0:
+        return JSONResponse(
+            body={
+                "statusText": "Temp Directory is already Clean",
+            },
+            status=200,
+        )
+
+    for filename in os.listdir("TEMP"):
+        os.remove(f"TEMP/{filename}")
+
+    return JSONResponse(
+        body={
+            "statusText": "Cleaned Temp Directory",
+        },
+        status=200,
+    )
+
+
+@app.route("/depth", methods=["GET", "POST"], name="Depth")
 async def resize(request: Request) -> Union[JSONResponse, file]:
-    '''
+    """
     BASH
 
     curl -X GET -L "http://localhost:9090/depth"
     curl -X GET -L "http://localhost:9090/depth?rtype=json"
-    curl -X POST -L "http://localhost:9090/depth" -F file=@"/C:/Users/user/IMG.png" --output C:/Users/user/Downloads/Depth.png
-    curl -X POST -L "http://localhost:9090/depth?rtype=json" -F file=@"/C:/Users/user/IMG.png" --output C:/Users/user/Downloads/Depth.json
+    curl -X POST -L "http://localhost:9090/depth" -F file=@"/<PATH>/img1.png" --output <PATH>/depth.png
+    curl -X POST -L "http://localhost:9090/depth?rtype=json" -F file=@"/<PATH>/img1.png" --output <PATH>/depth.json
 
-    '''
+    """
     rtype: str = "file"
 
     if request.method == "GET":
@@ -93,7 +113,7 @@ async def resize(request: Request) -> Union[JSONResponse, file]:
                 },
                 status=200,
             )
-        
+
         if "rtype" in request.args:
             rtype = request.args.get("rtype")
 
@@ -105,10 +125,12 @@ async def resize(request: Request) -> Union[JSONResponse, file]:
         )
 
     elif request.method == "POST":
+        filename: str = request.files.get("file").name
+
         if "rtype" in request.args:
             rtype = request.args.get("rtype")
-        
-        image = model.infer(Processor.decode_image(request.files.get("file").body))
+
+        image = await model.infer(Processor.decode_image(request.files.get("file").body))
 
         if rtype == "json":
             return JSONResponse(
@@ -119,16 +141,17 @@ async def resize(request: Request) -> Union[JSONResponse, file]:
                 status=201,
             )
         elif rtype == "file":
-            Processor.write_to_temp(image)
-            return await file(location="TEMP/temp.png", status=201, mime_type="image/*")
+            Processor.write_to_temp(image, f"TEMP/temp_{filename.split('.')[0]}.png")
+            return await file(
+                location=f"TEMP/temp_{filename.split('.')[0]}.png",
+                status=201,
+                mime_type="image/*",
+            )
         else:
             raise SanicException(
-                message={
-                    "statusText" : "Invalid return type"
-                },
-                status_code=400
+                message={"statusText": "Invalid return type"}, status_code=400
             )
-        
+
 
 if __name__ == "__main__":
     args_1: tuple = ("-m", "--mode")
@@ -143,7 +166,7 @@ if __name__ == "__main__":
         mode = sys.argv[sys.argv.index(args_1[0]) + 1]
     if args_1[1] in sys.argv:
         mode = sys.argv[sys.argv.index(args_1[1]) + 1]
-    
+
     if args_2[0] in sys.argv:
         port = int(sys.argv[sys.argv.index(args_2[0]) + 1])
     if args_2[1] in sys.argv:

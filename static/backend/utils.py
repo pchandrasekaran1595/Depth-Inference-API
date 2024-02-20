@@ -26,8 +26,8 @@ class Processor:
         return imageData
     
     @staticmethod  
-    def write_to_temp(image: np.ndarray) -> None:
-        cv2.imwrite("TEMP/temp.png", cv2.cvtColor(src=image, code=cv2.COLOR_RGB2BGR))
+    def write_to_temp(image: np.ndarray, filename) -> None:
+        cv2.imwrite(filename, cv2.cvtColor(src=image, code=cv2.COLOR_RGB2BGR))
 
 
 class Model(object):
@@ -45,7 +45,7 @@ class Model(object):
             "static/backend/model.onnx", providers=["AzureExecutionProvider", "CPUExecutionProvider"]
         )
 
-    def infer(self, image: np.ndarray) -> np.ndarray:
+    async def infer(self, image: np.ndarray) -> np.ndarray:
         h, w, _ = image.shape
 
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
