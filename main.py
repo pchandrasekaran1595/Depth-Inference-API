@@ -1,15 +1,13 @@
 import os
 import sys
-import json
 
 from typing import Union
 
 from sanic import Sanic
 from sanic.request import Request
-from sanic.exceptions import SanicException
-from sanic.response import html, file, JSONResponse
+from sanic.response import file, JSONResponse
 
-from static.backend.utils import model, Processor
+from static.utils import model, Processor
 
 
 STATIC_PATH: str = "static"
@@ -22,57 +20,26 @@ if not os.path.exists("TEMP"):
     os.makedirs("TEMP")
 
 
-@app.route("/favicon.ico", methods=["GET"], name="Favicon")
-async def favicon(request: Request):
-    return await file(
-        location=f"{STATIC_PATH}/web/favicon.ico", status=200, mime_type="image/x-icon"
-    )
-
-
-@app.route("/", methods=["GET"], name="Homepage")
-async def root(request: Request) -> html:
-    with open(f"{STATIC_PATH}/web/index.html", "r") as fp:
-        html_content = fp.read()
-    return html(body=html_content, status=200)
-
-
-@app.route("/help", methods=["GET"], name="Help")
-async def help(request: Request) -> html:
-    with open(f"{STATIC_PATH}/web/help.html", "r") as fp:
-        html_content = fp.read()
-    return html(body=html_content, status=200)
-
-
-@app.route("/login", methods=["POST"], name="Login")
-async def login(request: Request) -> JSONResponse:
-    try:
-        await request.receive_body()
-    except:
-        raise SanicException(
-            message={"statusText": "Error in request body"}, status_code=400
-        )
-
-    body = json.loads(request.body.decode("ascii"))
-    username = body["username"]
-    password = body["password"]
-    timestamp = body["timestamp"]
-
-    if not os.path.exists("logs"):
-        os.makedirs("logs")
-
-    with open("logs/logs.txt", "a") as fp:
-        fp.write(f"login attempt at {timestamp} - {username}, {password}\n")
-
+@app.route("/", methods=["GET"])
+async def root(request: Request) -> JSONResponse:
+    """
+    BASH
+        curl -X GET "<BASE_URL>" -s
+    """
     return JSONResponse(
         body={
-            "statusText": "Login Successful",
+            "statusText": "Root Endpoint of Depth-Inference-API",
         },
-        status=201,
+        status=200,
     )
 
 
 @app.route("/clean", methods=["GET"])
 async def clean(request: Request) -> JSONResponse:
+    """
+    BASH
+        curl -X GET "<BASE_URL>/clean" -s
+    """
     if len(os.listdir("TEMP")) == 0:
         return JSONResponse(
             body={
@@ -96,24 +63,14 @@ async def clean(request: Request) -> JSONResponse:
 async def resize(request: Request) -> Union[JSONResponse, file]:
     """
     BASH
-
-    curl -X GET -L "http://localhost:9090/depth"
-    curl -X GET -L "http://localhost:9090/depth?rtype=json"
-    curl -X POST -L "http://localhost:9090/depth" -F file=@"/<PATH>/img1.png" --output <PATH>/depth.png
-    curl -X POST -L "http://localhost:9090/depth?rtype=json" -F file=@"/<PATH>/img1.png" --output <PATH>/depth.json
-
+        curl -X GET -L "<BASE_URL>/depth"
+        curl -X GET -L "<BASE_URL>/depth?rtype=json"
+        curl -X POST -L "<BASE_URL>/depth" -F file=@"/<PATH>/<NAME>.<EXT>" -o <PATH>/<NAME>.png
+        curl -X POST -L "<BASE_URL>/depth?rtype=json" -F file=@"/<PATH>/<NAME>.<EXT>" -o <PATH>/<NAME>.json
     """
     rtype: str = "file"
 
     if request.method == "GET":
-        if len(request.args) == 0:
-            return JSONResponse(
-                body={
-                    "statusText": "Depth Inference Endpoint",
-                },
-                status=200,
-            )
-
         if "rtype" in request.args:
             rtype = request.args.get("rtype")
 
@@ -125,12 +82,20 @@ async def resize(request: Request) -> Union[JSONResponse, file]:
         )
 
     elif request.method == "POST":
-        filename: str = request.files.get("file").name
+        if request.files.get("file", None) is None:
+            return JSONResponse(
+                body={"statusText": "Invalid Key Specified for file Upload"},
+                status=400,
+            )
 
         if "rtype" in request.args:
             rtype = request.args.get("rtype")
 
-        image = await model.infer(Processor.decode_image(request.files.get("file").body))
+        filename: str = request.files.get("file").name
+
+        image = await model.infer(
+            Processor.decode_image(request.files.get("file").body)
+        )
 
         if rtype == "json":
             return JSONResponse(
@@ -148,8 +113,8 @@ async def resize(request: Request) -> Union[JSONResponse, file]:
                 mime_type="image/*",
             )
         else:
-            raise SanicException(
-                message={"statusText": "Invalid return type"}, status_code=400
+            return JSONResponse(
+                body={"statusText": "Invalid Return Type Specified"}, status=400
             )
 
 

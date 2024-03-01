@@ -19,7 +19,7 @@ class Processor:
     @staticmethod
     def encode_image_to_base64(header: str = "data:image/png;base64", image: np.ndarray = None) -> str:
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
-        _, imageData = cv2.imencode(".jpeg", image)
+        _, imageData = cv2.imencode(".png", image)
         imageData = base64.b64encode(imageData)
         imageData = str(imageData).replace("b'", "").replace("'", "")
         imageData = header + "," + imageData
@@ -39,10 +39,10 @@ class Model(object):
         self.mean: list = [0.5, 0.5, 0.5]
         self.std: list = [0.5, 0.5, 0.5]
 
-        model = onnx.load("static/backend/model.onnx")
+        model = onnx.load("static/model.onnx")
         onnx.checker.check_model(model)
         self.ort_session = ort.InferenceSession(
-            "static/backend/model.onnx", providers=["AzureExecutionProvider", "CPUExecutionProvider"]
+            "static/model.onnx", providers=["AzureExecutionProvider", "CPUExecutionProvider"]
         )
 
     async def infer(self, image: np.ndarray) -> np.ndarray:
